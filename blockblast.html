@@ -26,21 +26,28 @@ button:hover { background:#45a049; }
 </div>
 
 <script>
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-let paddle={x:170,y:370,w:60,h:10}, ball={x:200,y:200,dx:4,dy:-4,r:8}, bricks=[];
-let rows=5,cols=6,brickW=60,brickH=20,interval=null;
+let paddle = {x:170,y:370,w:60,h:10};
+let ball = {x:200,y:200,dx:4,dy:-4,r:8};
+let bricks = [];
+let rows=5, cols=6, brickW=60, brickH=20;
+let interval = null;
+let left=false, right=false;
 
-// creare bricks
-for(let r=0;r<rows;r++){
-  for(let c=0;c<cols;c++){
-    bricks.push({x:c*(brickW+10)+20,y:r*(brickH+10)+20,status:1});
+// crea bricks
+function initBricks(){
+  bricks=[];
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      bricks.push({x:c*(brickW+10)+20, y:r*(brickH+10)+20, status:1});
+    }
   }
 }
+initBricks();
 
-let left=false,right=false;
-
+// disegno
 function draw(){
   ctx.fillStyle="#333";
   ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -64,42 +71,59 @@ function draw(){
   });
 }
 
+// collisione cerchio-rettangolo
+function circleRectCollision(c, r){
+  let distX = Math.abs(c.x - r.x - r.w/2);
+  let distY = Math.abs(c.y - r.y - r.h/2);
+  if(distX > r.w/2 + c.r) return false;
+  if(distY > r.h/2 + c.r) return false;
+  if(distX <= r.w/2) return true;
+  if(distY <= r.h/2) return true;
+  let dx = distX - r.w/2;
+  let dy = distY - r.h/2;
+  return (dx*dx + dy*dy <= c.r*c.r);
+}
+
+// loop di gioco
 function update(){
   // paddle movimento
   if(left && paddle.x>0) paddle.x-=6;
   if(right && paddle.x+paddle.w<canvas.width) paddle.x+=6;
 
-  // ball movimento
+  // pallina
   ball.x+=ball.dx; ball.y+=ball.dy;
 
   // collisioni muri
-  if(ball.x<ball.r || ball.x>canvas.width-ball.r) ball.dx*=-1;
-  if(ball.y<ball.r) ball.dy*=-1;
-  if(ball.y>canvas.height){ pauseGame(); alert("Game Over!"); }
+  if(ball.x-ball.r<0 || ball.x+ball.r>canvas.width) ball.dx*=-1;
+  if(ball.y-ball.r<0) ball.dy*=-1;
+  if(ball.y+ball.r>canvas.height){ pauseGame(); alert("Game Over!"); }
 
-  // collisione paddle
-  if(ball.y+ball.r>paddle.y && ball.x>paddle.x && ball.x<paddle.x+paddle.w) ball.dy*=-1;
+  // paddle
+  if(circleRectCollision(ball,paddle)) { ball.dy*=-1; ball.y=paddle.y-ball.r; }
 
-  // collisione bricks
+  // bricks
   bricks.forEach(b=>{
-    if(b.status===1 && ball.x>b.x && ball.x<b.x+brickW && ball.y-b.r<b.y+brickH && ball.y+ball.r>b.y){
-      ball.dy*=-1; b.status=0;
+    if(b.status===1 && circleRectCollision(ball,b)){
+      ball.dy*=-1;
+      b.status=0;
     }
   });
 
   draw();
 }
 
+// controlli
 function startGame(){ if(!interval) interval=setInterval(update,20); }
 function pauseGame(){ clearInterval(interval); interval=null; }
-function replayGame(){
+function replayGame(){ 
   pauseGame();
-  ball={x:200,y:200,dx:4,dy:-4,r:8};
   paddle={x:170,y:370,w:60,h:10};
-  bricks.forEach(b=>b.status=1);
+  ball={x:200,y:200,dx:4,dy:-4,r:8};
+  initBricks();
   startGame();
 }
 
+// pulsanti
 document.getElementById("playBtn").onclick=startGame;
 document.getElementById("pauseBtn").onclick=pauseGame;
 document.getElementById("replayBtn").onclick=replayGame;
@@ -115,8 +139,8 @@ document.addEventListener("keyup",e=>{
 });
 
 // touch
-document.getElementById("left").onclick=()=>{ paddle.x-=20; if(paddle.x<0)paddle.x=0; }
-document.getElementById("right").onclick=()=>{ paddle.x+=20; if(paddle.x+paddle.w>canvas.width)paddle.x=canvas.width-paddle.w; }
+document.getElementById("left").onclick=()=>{ paddle.x-=20; if(paddle.x<0) paddle.x=0; }
+document.getElementById("right").onclick=()=>{ paddle.x+=20; if(paddle.x+paddle.w>canvas.width) paddle.x=canvas.width-paddle.w; }
 
 ctx.fillStyle="white";
 ctx.font="20px Arial";
