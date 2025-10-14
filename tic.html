@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe</title>
+<style>
+body { font-family: Arial; text-align:center; background:#222; color:white; }
+table { margin:20px auto; border-collapse: collapse; }
+td { width:80px; height:80px; border:2px solid white; font-size:40px; text-align:center; cursor:pointer; }
+button { margin:5px; padding:10px 15px; border:none; border-radius:5px; background:#4CAF50; color:white; cursor:pointer; }
+button:hover { background:#45a049; }
+</style>
+</head>
+<body>
+<h1>Tic Tac Toe</h1>
+<table id="board">
+  <tr><td data-pos="0"></td><td data-pos="1"></td><td data-pos="2"></td></tr>
+  <tr><td data-pos="3"></td><td data-pos="4"></td><td data-pos="5"></td></tr>
+  <tr><td data-pos="6"></td><td data-pos="7"></td><td data-pos="8"></td></tr>
+</table>
+<button id="playBtn">Play</button>
+<button id="pauseBtn">Pausa</button>
+<button id="replayBtn">Replay</button>
+
+<script>
+let board=[], player="X", gameRunning=false;
+
+function drawBoard(){
+  document.querySelectorAll("td").forEach((td,i)=>td.textContent=board[i]||"");
+}
+
+function checkWin(){
+  const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  for(let w of wins){
+    if(board[w[0]] && board[w[0]]===board[w[1]] && board[w[0]]===board[w[2]]) return true;
+  }
+  return false;
+}
+
+function playMove(i){
+  if(!gameRunning || board[i]) return;
+  board[i]=player;
+  if(checkWin()){ gameRunning=false; alert(player+" ha vinto!"); return; }
+  if(board.every(c=>c)) { gameRunning=false; alert("Pareggio!"); return; }
+  player=player==="X"?"O":"X";
+  drawBoard();
+}
+
+function startGame(){ gameRunning=true; drawBoard(); }
+function pauseGame(){ gameRunning=false; }
+function replayGame(){ board=[]; player="X"; gameRunning=true; drawBoard(); }
+
+document.getElementById("playBtn").onclick=startGame;
+document.getElementById("pauseBtn").onclick=pauseGame;
+document.getElementById("replayBtn").onclick=replayGame;
+
+document.querySelectorAll("td").forEach(td=>{
+  td.onclick=()=>playMove(parseInt(td.getAttribute("data-pos")));
+});
+
+drawBoard();
+</script>
+</body>
+</html>

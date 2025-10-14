@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pong</title>
+<style>
+body { font-family: Arial; text-align:center; background:#222; color:white; }
+canvas { display:block; margin:20px auto; background:#333; border-radius:10px; }
+button { margin:5px; padding:10px 15px; border:none; border-radius:5px; background:#4CAF50; color:white; cursor:pointer; }
+button:hover { background:#45a049; }
+.touch-controls { display:flex; justify-content:center; margin-top:10px; }
+.touch-controls button { width:50px; height:50px; margin:5px; font-size:20px; }
+</style>
+</head>
+<body>
+<h1>Pong</h1>
+<canvas id="game" width="400" height="400"></canvas><br>
+<button id="playBtn">Play</button>
+<button id="pauseBtn">Pausa</button>
+<button id="replayBtn">Replay</button>
+
+<div class="touch-controls">
+  <button id="up">⬆</button>
+  <button id="down">⬇</button>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let paddleHeight=80, paddleWidth=10, playerY=160, aiY=160, ball={x:200,y:200,dx:4,dy:4}, interval=null;
+
+// touch flags
+let up=false, down=false;
+
+function draw(){
+  ctx.fillStyle="#333"; ctx.fillRect(0,0,canvas.width,canvas.height);
+  // paddle
+  ctx.fillStyle="lime";
+  ctx.fillRect(0,playerY,paddleWidth,paddleHeight);
+  ctx.fillStyle="red";
+  ctx.fillRect(canvas.width-paddleWidth,aiY,paddleWidth,paddleHeight);
+  // ball
+  ctx.fillStyle="white";
+  ctx.fillRect(ball.x,ball.y,10,10);
+}
+
+function update(){
+  // paddle movimento PC
+  if(up && playerY>0) playerY-=6;
+  if(down && playerY+paddleHeight<canvas.height) playerY+=6;
+
+  // AI semplice
+  if(ball.y < aiY+paddleHeight/2) aiY-=4;
+  else aiY+=4;
+
+  // ball movimento
+  ball.x+=ball.dx;
+  ball.y+=ball.dy;
+
+  // collisioni muri
+  if(ball.y<=0 || ball.y+10>=canvas.height) ball.dy*=-1;
+
+  // collisioni paddle
+  if(ball.x<=paddleWidth && ball.y+10>=playerY && ball.y<=playerY+paddleHeight) ball.dx*=-1;
+  if(ball.x+10>=canvas.width-paddleWidth && ball.y+10>=aiY && ball.y<=aiY+paddleHeight) ball.dx*=-1;
+
+  // punteggio
+  if(ball.x<0 || ball.x>canvas.width){ ball.x=200; ball.y=200; ball.dx=4; ball.dy=4; }
+
+  draw();
+}
+
+function startGame(){ if(!interval) interval=setInterval(update,20); }
+function pauseGame(){ clearInterval(interval); interval=null; }
+function replayGame(){ pauseGame(); playerY=160; aiY=160; ball={x:200,y:200,dx:4,dy:4}; startGame(); }
+
+document.getElementById("playBtn").onclick=startGame;
+document.getElementById("pauseBtn").onclick=pauseGame;
+document.getElementById("replayBtn").onclick=replayGame;
+
+// tasti PC
+document.addEventListener("keydown",e=>{
+  if(["ArrowUp","KeyW"].includes(e.code)) up=true;
+  if(["ArrowDown","KeyS"].includes(e.code)) down=true;
+});
+document.addEventListener("keyup",e=>{
+  if(["ArrowUp","KeyW"].includes(e.code)) up=false;
+  if(["ArrowDown","KeyS"].includes(e.code)) down=false;
+});
+
+// touch
+document.getElementById("up").onclick=()=>{ playerY-=20; if(playerY<0) playerY=0; }
+document.getElementById("down").onclick=()=>{ playerY+=20; if(playerY+paddleHeight>canvas.height) playerY=canvas.height-paddleHeight; }
+
+ctx.fillStyle="white";
+ctx.font="20px Arial";
+ctx.fillText("Premi Play per iniziare",80,200);
+</script>
+</body>
+</html>
