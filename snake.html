@@ -2,82 +2,93 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Snake</title>
 <style>
-body { text-align:center; font-family:Arial; background:#000; color:#fff; }
-canvas { display:block; margin:20px auto; background:#111; }
-button { padding:10px 15px; margin:5px; cursor:pointer; }
+body { font-family: Arial; text-align:center; background:#70c5ce; }
+canvas { background:#333; display:block; margin:20px auto; border-radius:10px; }
+button { margin:5px; padding:10px 15px; border:none; border-radius:5px; background:#4CAF50; color:white; cursor:pointer; }
+button:hover { background:#45a049; }
+.touch-controls { display:flex; justify-content:center; margin-top:10px; }
+.touch-controls button { width:50px; height:50px; margin:5px; font-size:20px; }
 </style>
 </head>
 <body>
 <h1>Snake</h1>
-<canvas id="game" width="400" height="400"></canvas>
-<br>
+<canvas id="game" width="400" height="400"></canvas><br>
 <button id="playBtn">Play</button>
 <button id="pauseBtn">Pausa</button>
 <button id="replayBtn">Replay</button>
 
+<div class="touch-controls">
+  <button id="up">⬆️</button>
+</div>
+<div class="touch-controls">
+  <button id="left">⬅️</button>
+  <button id="down">⬇️</button>
+  <button id="right">➡️</button>
+</div>
+
 <script>
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-const box = 20;
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-let snake, food, dx, dy, gameInterval;
+let grid=20, count=0, snake=[{x:10,y:10}], dx=0, dy=0, apple={x:15,y:15}, loop=null;
 
-function initGame(){
-    snake = [{x:200,y:200}];
-    food = {x:Math.floor(Math.random()*20)*box, y:Math.floor(Math.random()*20)*box};
-    dx = box;
-    dy = 0;
+function getRandomPos() { return Math.floor(Math.random() * canvas.width / grid); }
+
+function gameLoop() {
+  if (++count < 4) return count= count; 
+  count=0;
+  ctx.fillStyle="#333";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  snake.unshift({x:snake[0].x + dx, y:snake[0].y + dy});
+
+  if(snake[0].x===apple.x && snake[0].y===apple.y){
+    apple={x:getRandomPos(), y:getRandomPos()};
+  } else { snake.pop(); }
+
+  ctx.fillStyle="lime";
+  snake.forEach(s=>ctx.fillRect(s.x*grid,s.y*grid,grid-2,grid-2));
+
+  ctx.fillStyle="red";
+  ctx.fillRect(apple.x*grid,apple.y*grid,grid-2,grid-2);
+
+  // collision
+  if(snake.slice(1).some(s=>s.x===snake[0].x && s.y===snake[0].y) ||
+     snake[0].x<0 || snake[0].x>=canvas.width/grid ||
+     snake[0].y<0 || snake[0].y>=canvas.height/grid){
+    pauseGame();
+    alert("Game Over!");
+  }
 }
 
-function draw(){
-    ctx.fillStyle='#111'; ctx.fillRect(0,0,canvas.width,canvas.height);
-    for(let s of snake){ ctx.fillStyle='lime'; ctx.fillRect(s.x,s.y,box,box); }
-    ctx.fillStyle='red'; ctx.fillRect(food.x,food.y,box,box);
+function startGame(){ if(!loop) loop=setInterval(gameLoop,100); }
+function pauseGame(){ clearInterval(loop); loop=null; }
+function replayGame(){ pauseGame(); snake=[{x:10,y:10}]; dx=dy=0; apple={x:15,y:15}; startGame(); }
 
-    let head = {x:snake[0].x+dx, y:snake[0].y+dy};
+document.getElementById("playBtn").onclick=startGame;
+document.getElementById("pauseBtn").onclick=pauseGame;
+document.getElementById("replayBtn").onclick=replayGame;
 
-    if(head.x<0 || head.x>=canvas.width || head.y<0 || head.y>=canvas.height || snake.some(s=>s.x===head.x&&s.y===head.y)){
-        clearInterval(gameInterval);
-        alert('Game Over');
-        return;
-    }
-
-    snake.unshift(head);
-
-    if(head.x===food.x && head.y===food.y){
-        food = {x:Math.floor(Math.random()*20)*box, y:Math.floor(Math.random()*20)*box};
-    } else {
-        snake.pop();
-    }
-}
-
-document.addEventListener('keydown', e=>{
-    if(e.key==='ArrowUp' && dy===0){ dx=0; dy=-box; }
-    if(e.key==='ArrowDown' && dy===0){ dx=0; dy=box; }
-    if(e.key==='ArrowLeft' && dx===0){ dx=-box; dy=0; }
-    if(e.key==='ArrowRight' && dx===0){ dx=box; dy=0; }
+// tasti PC
+document.addEventListener("keydown", e=>{
+  if(["ArrowUp","KeyW"].includes(e.code) && dy===0){dx=0; dy=-1;}
+  if(["ArrowDown","KeyS"].includes(e.code) && dy===0){dx=0; dy=1;}
+  if(["ArrowLeft","KeyA"].includes(e.code) && dx===0){dx=-1; dy=0;}
+  if(["ArrowRight","KeyD"].includes(e.code) && dx===0){dx=1; dy=0;}
 });
 
-document.getElementById('playBtn').onclick = () => {
-    if(!gameInterval) gameInterval = setInterval(draw,100);
-};
+// touch
+document.getElementById("up").onclick=()=>{ if(dy===0){dx=0; dy=-1;} }
+document.getElementById("down").onclick=()=>{ if(dy===0){dx=0; dy=1;} }
+document.getElementById("left").onclick=()=>{ if(dx===0){dx=-1; dy=0;} }
+document.getElementById("right").onclick=()=>{ if(dx===0){dx=1; dy=0;} }
 
-document.getElementById('pauseBtn').onclick = () => {
-    clearInterval(gameInterval);
-    gameInterval = null;
-};
-
-document.getElementById('replayBtn').onclick = () => {
-    clearInterval(gameInterval);
-    gameInterval = null;
-    initGame();
-    gameInterval = setInterval(draw,100);
-};
-
-// inizializza il gioco senza partire subito
-initGame();
+ctx.fillStyle="white";
+ctx.font="20px Arial";
+ctx.fillText("Premi Play per iniziare",80,200);
 </script>
 </body>
 </html>
