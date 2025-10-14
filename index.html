@@ -3,137 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GameVerse</title>
+<title>GameVerse - Snake</title>
 <style>
-body {
-  font-family: 'Poppins', sans-serif;
-  margin: 0;
-  background: radial-gradient(circle at top, #1a1a1a, #000);
-  color: white;
-  min-height: 100vh;
-}
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 30px;
-  background: rgba(20, 20, 20, 0.95);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-header h1 {
-  margin: 0;
-  font-size: 1.8em;
-  background: linear-gradient(90deg, #4CAF50, #00c6ff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-nav input, nav select, nav button {
-  margin-left: 10px;
-  padding: 6px 10px;
-  border-radius: 5px;
-  border: none;
-  outline: none;
-}
-.games-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 25px;
-  padding: 40px;
-}
-.game-card {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 15px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-  text-align: center;
-  transition: all 0.3s ease;
-  padding: 20px;
-}
-.game-card:hover {
-  transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.1);
-}
-.game-card h3 {
-  margin: 15px 0 10px;
-  font-size: 1.2em;
-  color: #4CAF50;
-}
-.game-card button {
-  padding: 10px 18px;
-  border: none;
-  border-radius: 8px;
-  background: linear-gradient(90deg, #4CAF50, #00c6ff);
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.game-card button:hover {
-  transform: scale(1.05);
-  background: linear-gradient(90deg, #45a049, #00a8ff);
-}
-footer {
-  text-align: center;
-  padding: 20px;
-  font-size: 0.9em;
-  color: #ccc;
-}
+body { font-family: Arial; margin:0; background: linear-gradient(135deg, #74ebd5, #ACB6E5); }
+header { display:flex; justify-content: space-between; align-items:center; padding:15px 30px; background:#333; color:white; }
+header h1 { margin:0; }
+nav input, nav select, nav button { margin-left:10px; padding:5px 10px; border-radius:5px; border:none; outline:none; }
+.games-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:20px; padding:20px; justify-items: center; }
+.game-card { background:white; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:center; transition: transform 0.2s; overflow:hidden; padding:15px; }
+.game-card:hover { transform: scale(1.05); }
+.game-card h3 { margin:10px 0; }
+.game-card button { margin-bottom:10px; padding:10px 15px; border:none; border-radius:5px; background:#4CAF50; color:white; cursor:pointer; transition: background 0.2s; }
+.game-card button:hover { background:#45a049; }
 </style>
 </head>
 <body>
 <header>
-  <h1>GameVerse</h1>
-  <nav>
-    <input type="text" id="search" placeholder="Cerca giochi..." onkeyup="filterGames()">
-    <select id="language" onchange="changeLanguage()">
-      <option value="it">Italiano</option>
-      <option value="en">English</option>
-    </select>
-  </nav>
+<h1>GameVerse</h1>
+<nav>
+<input type="text" id="search" placeholder="Cerca giochi..." onkeyup="filterGames()">
+<select id="language" onchange="changeLanguage()">
+<option value="it">Italiano</option>
+<option value="en">English</option>
+</select>
+<button onclick="showLogin()">Account</button>
+</nav>
 </header>
 
 <div class="games-grid" id="gamesGrid">
   <div class="game-card" data-name="Snake">
-    <h3>🐍 Snake</h3>
+    <h3>Snake</h3>
     <button onclick="openGame('snake')">Gioca</button>
-  </div>
-
-  <div class="game-card" data-name="Tetris">
-    <h3>🧱 Tetris</h3>
-    <button onclick="openGame('tetris')">Gioca</button>
   </div>
 </div>
 
-<footer>© 2025 GameVerse - Tutti i diritti riservati</footer>
-
 <script>
 function filterGames(){
-  const search = document.getElementById('search').value.toLowerCase();
-  const cards = document.querySelectorAll('.game-card');
-  cards.forEach(card => {
-    const name = card.getAttribute('data-name').toLowerCase();
-    card.style.display = name.includes(search) ? 'block' : 'none';
+  const search=document.getElementById('search').value.toLowerCase();
+  document.querySelectorAll('.game-card').forEach(card=>{
+    const name=card.getAttribute('data-name').toLowerCase();
+    card.style.display=name.includes(search)?'block':'none';
   });
 }
 
 function changeLanguage(){
-  const lang = document.getElementById('language').value;
-  if(lang === 'en'){
-    document.getElementById('search').placeholder = 'Search games...';
-    document.querySelectorAll('.game-card button').forEach(btn => btn.textContent = 'Play');
+  const lang=document.getElementById('language').value;
+  if(lang==='en'){
+    document.getElementById('search').placeholder='Search games...';
+    document.querySelectorAll('.game-card button').forEach(btn=>btn.textContent='Play');
   } else {
-    document.getElementById('search').placeholder = 'Cerca giochi...';
-    document.querySelectorAll('.game-card button').forEach(btn => btn.textContent = 'Gioca');
+    document.getElementById('search').placeholder='Cerca giochi...';
+    document.querySelectorAll('.game-card button').forEach(btn=>btn.textContent='Gioca');
   }
 }
 
+function showLogin(){ alert('Funzione login/registrazione da implementare'); }
+
 function openGame(game){
-  let url = '';
-  if(game === 'snake') url = 'games/snake.html';
-  else if(game === 'tetris') url = 'games/tetris.html';
-  window.open(url, '_blank');
+  if(game==='snake') window.open('snake.html','_blank');
 }
 </script>
 </body>
