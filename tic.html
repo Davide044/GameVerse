@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Tic Tac Toe</title>
+<style>
+body{text-align:center;font-family:Arial;}
+button{width:80px;height:80px;font-size:30px;margin:5px; cursor:pointer;}
+</style>
+</head>
+<body>
+<h1>Tic Tac Toe</h1>
+<div id="board"></div>
+<br>
+<button id="playBtn">Play</button>
+<button id="pauseBtn">Pausa</button>
+<button id="replayBtn">Replay</button>
+
+<script>
+let board=[], turn='X', paused=true;
+
+function drawBoard(){
+    const boardDiv = document.getElementById('board');
+    boardDiv.innerHTML='';
+    for(let i=0;i<9;i++){
+        let btn=document.createElement('button');
+        btn.textContent=board[i]||'';
+        btn.onclick=()=>{ if(!paused && !board[i]){ board[i]=turn; turn=turn==='X'?'O':'X'; drawBoard(); checkWin(); } };
+        boardDiv.appendChild(btn);
+        if(i%3===2) boardDiv.appendChild(document.createElement('br'));
+    }
+}
+
+function checkWin(){
+    const lines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    for(let l of lines){
+        if(board[l[0]] && board[l[0]]===board[l[1]] && board[l[1]]===board[l[2]]){
+            alert(board[l[0]]+' vince!'); paused=true; return;
+        }
+    }
+    if(board.filter(x=>x).length===9){ alert('Pareggio'); paused=true; }
+}
+
+document.getElementById('playBtn').onclick = () => { paused=false; };
+document.getElementById('pauseBtn').onclick = () => { paused=true; };
+document.getElementById('replayBtn').onclick = () => { board=[]; turn='X'; paused=false; drawBoard(); };
+
+drawBoard();
+</script>
+</body>
+</html>

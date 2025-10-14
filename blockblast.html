@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Block Blast</title>
+<style>
+body{background:#000;text-align:center;color:#fff;font-family:Arial;}
+canvas{display:block;margin:20px auto;background:#111;}
+button { padding:10px 15px; margin:5px; cursor:pointer; }
+</style>
+</head>
+<body>
+<h1>Block Blast</h1>
+<canvas id="game" width="400" height="400"></canvas>
+<br>
+<button id="playBtn">Play</button>
+<button id="pauseBtn">Pausa</button>
+<button id="replayBtn">Replay</button>
+
+<script>
+const canvas=document.getElementById('game');const ctx=canvas.getContext('2d');
+let paddle, ball, bricks, gameInterval;
+function initGame(){
+    paddle={x:160,y:380,width:80,height:10};
+    ball={x:200,y:200,dx:3,dy:-3,r:8};
+    bricks=[];
+    for(let r=0;r<5;r++){bricks[r]=[]; for(let c=0;c<8;c++){bricks[r][c]={x:c*50+5,y:r*20+5,status:1};}}
+}
+function draw(){
+    ctx.fillStyle='#111'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='lime'; ctx.fillRect(paddle.x,paddle.y,paddle.width,paddle.height);
+    ctx.beginPath(); ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2); ctx.fill();
+    for(let r=0;r<5;r++){for(let c=0;c<8;c++){
+        let b=bricks[r][c];
+        if(b.status){ ctx.fillStyle='red'; ctx.fillRect(b.x,b.y,45,15);
+            if(ball.x>b.x && ball.x<b.x+45 && ball.y>b.y && ball.y<b.y+15){ ball.dy=-ball.dy; b.status=0; }
+        }
+    }}
+    ball.x+=ball.dx; ball.y+=ball.dy;
+    if(ball.x<=0||ball.x>=canvas.width) ball.dx=-ball.dx;
+    if(ball.y<=0) ball.dy=-ball.dy;
+    if(ball.y>=paddle.y && ball.x>=paddle.x && ball.x<=paddle.x+paddle.width) ball.dy=-ball.dy;
+    if(ball.y>canvas.height){ clearInterval(gameInterval); gameInterval=null; alert('Game Over'); }
+}
+document.addEventListener('mousemove',e=>{
+    let pos=e.clientX-canvas.offsetLeft;
+    if(pos>0 && pos<canvas.width) paddle.x=pos-paddle.width/2;
+});
+document.getElementById('playBtn').onclick=()=>{ if(!gameInterval) gameInterval=setInterval(draw,16); };
+document.getElementById('pauseBtn').onclick=()=>{ clearInterval(gameInterval); gameInterval=null; };
+document.getElementById('replayBtn').onclick=()=>{ clearInterval(gameInterval); gameInterval=null; initGame(); gameInterval=setInterval(draw,16); };
+initGame();
+</script>
+</body>
+</html>
