@@ -3,55 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GameVerse</title>
+<title>GameVerse - Snake</title>
 <style>
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    background: linear-gradient(135deg, #74ebd5, #ACB6E5);
-}
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 30px;
-    background: #333;
-    color: white;
-}
+body { font-family: Arial; margin:0; background: linear-gradient(135deg, #74ebd5, #ACB6E5); }
+header { display:flex; justify-content: space-between; align-items:center; padding:15px 30px; background:#333; color:white; }
 header h1 { margin:0; }
-nav input, nav select, nav button {
-    margin-left: 10px;
-    padding: 5px 10px;
-    border-radius:5px;
-    border:none;
-    outline:none;
-}
-.games-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 20px;
-    padding: 20px;
-}
-.game-card {
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    text-align: center;
-    transition: transform 0.2s;
-    overflow: hidden;
-}
+nav input, nav select, nav button { margin-left:10px; padding:5px 10px; border-radius:5px; border:none; outline:none; }
+.games-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:20px; padding:20px; justify-items: center; }
+.game-card { background:white; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:center; transition: transform 0.2s; overflow:hidden; padding:15px; }
 .game-card:hover { transform: scale(1.05); }
 .game-card h3 { margin:10px 0; }
-.game-card button {
-    margin-bottom: 10px;
-    padding: 10px 15px;
-    border:none;
-    border-radius:5px;
-    background:#4CAF50;
-    color:white;
-    cursor:pointer;
-    transition: background 0.2s;
-}
+.game-card button { margin-bottom:10px; padding:10px 15px; border:none; border-radius:5px; background:#4CAF50; color:white; cursor:pointer; transition: background 0.2s; }
 .game-card button:hover { background:#45a049; }
 </style>
 </head>
@@ -73,23 +35,12 @@ nav input, nav select, nav button {
     <h3>Snake</h3>
     <button onclick="openGame('snake')">Gioca</button>
   </div>
-
-  <div class="game-card" data-name="Block Blast">
-    <h3>Block Blast</h3>
-    <button onclick="openGame('blockblast')">Gioca</button>
-  </div>
-
-  <div class="game-card" data-name="Tic Tac Toe">
-    <h3>Tic Tac Toe</h3>
-    <button onclick="openGame('tic')">Gioca</button>
-  </div>
 </div>
 
 <script>
 function filterGames(){
   const search=document.getElementById('search').value.toLowerCase();
-  const cards=document.querySelectorAll('.game-card');
-  cards.forEach(card=>{
+  document.querySelectorAll('.game-card').forEach(card=>{
     const name=card.getAttribute('data-name').toLowerCase();
     card.style.display=name.includes(search)?'block':'none';
   });
@@ -100,7 +51,7 @@ function changeLanguage(){
   if(lang==='en'){
     document.getElementById('search').placeholder='Search games...';
     document.querySelectorAll('.game-card button').forEach(btn=>btn.textContent='Play');
-  }else{
+  } else {
     document.getElementById('search').placeholder='Cerca giochi...';
     document.querySelectorAll('.game-card button').forEach(btn=>btn.textContent='Gioca');
   }
@@ -109,11 +60,7 @@ function changeLanguage(){
 function showLogin(){ alert('Funzione login/registrazione da implementare'); }
 
 function openGame(game){
-  let url='';
-  if(game==='snake') url='snake.html';
-  else if(game==='blockblast') url='blockblast.html';
-  else if(game==='tic') url='tic.html';
-  window.open(url,'_blank');
+  if(game==='snake') window.open('snake.html','_blank');
 }
 </script>
 </body>
