@@ -9,7 +9,7 @@ body { font-family: Arial; text-align:center; background:#222; color:white; }
 canvas { display:block; margin:20px auto; background:#333; border-radius:10px; }
 button { margin:5px; padding:10px 15px; border:none; border-radius:5px; background:#4CAF50; color:white; cursor:pointer; }
 button:hover { background:#45a049; }
-.touch-controls { display:flex; justify-content:center; margin-top:10px; }
+.touch-controls { display:flex; justify-content:center; margin-top:10px; flex-wrap: wrap; max-width:220px; margin-left:auto; margin-right:auto; }
 .touch-controls button { width:50px; height:50px; margin:5px; font-size:20px; }
 </style>
 </head>
@@ -21,6 +21,8 @@ button:hover { background:#45a049; }
 <button id="replayBtn">Replay</button>
 
 <div class="touch-controls">
+  <button id="up">⬆️</button>
+  <button id="down">⬇️</button>
   <button id="left">⬅️</button>
   <button id="right">➡️</button>
 </div>
@@ -34,9 +36,8 @@ let ball={x:200,y:200,dx:4,dy:-4,r:8};
 let bricks=[];
 let rows=5, cols=6, brickW=60, brickH=20;
 let interval=null;
-let left=false, right=false;
+let up=false, down=false, left=false, right=false;
 
-// crea bricks
 function initBricks(){
   bricks=[];
   for(let r=0;r<rows;r++){
@@ -47,7 +48,6 @@ function initBricks(){
 }
 initBricks();
 
-// disegno
 function draw(){
   ctx.fillStyle="#333";
   ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -65,16 +65,18 @@ function draw(){
   });
 }
 
-// collisione semplice
 function checkCollision(ball, rect){
   return ball.x+ball.r>rect.x && ball.x-ball.r<rect.x+rect.w && ball.y+ball.r>rect.y && ball.y-ball.r<rect.y+rect.h;
 }
 
-// loop
 function update(){
+  // movimento paddle PC/touch
   if(left && paddle.x>0) paddle.x-=6;
   if(right && paddle.x+paddle.w<canvas.width) paddle.x+=6;
+  if(up && paddle.y>canvas.height-150) paddle.y-=6;
+  if(down && paddle.y+paddle.h<canvas.height) paddle.y+=6;
 
+  // pallina
   ball.x+=ball.dx; ball.y+=ball.dy;
 
   if(ball.x-ball.r<0 || ball.x+ball.r>canvas.width) ball.dx*=-1;
@@ -90,7 +92,6 @@ function update(){
   draw();
 }
 
-// controlli
 function startGame(){ if(!interval) interval=setInterval(update,20); }
 function pauseGame(){ clearInterval(interval); interval=null; }
 function replayGame(){ 
@@ -101,24 +102,34 @@ function replayGame(){
   startGame();
 }
 
-// pulsanti
-document.getElementById("playBtn").onclick=startGame;
-document.getElementById("pauseBtn").onclick=pauseGame;
-document.getElementById("replayBtn").onclick=replayGame;
-
-// tasti PC
+// pulsanti PC
 document.addEventListener("keydown",e=>{
   if(["ArrowLeft","KeyA"].includes(e.code)) left=true;
   if(["ArrowRight","KeyD"].includes(e.code)) right=true;
+  if(["ArrowUp","KeyW"].includes(e.code)) up=true;
+  if(["ArrowDown","KeyS"].includes(e.code)) down=true;
 });
 document.addEventListener("keyup",e=>{
   if(["ArrowLeft","KeyA"].includes(e.code)) left=false;
   if(["ArrowRight","KeyD"].includes(e.code)) right=false;
+  if(["ArrowUp","KeyW"].includes(e.code)) up=false;
+  if(["ArrowDown","KeyS"].includes(e.code)) down=false;
 });
 
 // touch
-document.getElementById("left").onclick=()=>{ paddle.x-=20; if(paddle.x<0)paddle.x=0; }
-document.getElementById("right").onclick=()=>{ paddle.x+=20; if(paddle.x+paddle.w>canvas.width)paddle.x=canvas.width-paddle.w; }
+document.getElementById("left").onmousedown=()=>left=true;
+document.getElementById("left").onmouseup=()=>left=false;
+document.getElementById("right").onmousedown=()=>right=true;
+document.getElementById("right").onmouseup=()=>right=false;
+document.getElementById("up").onmousedown=()=>up=true;
+document.getElementById("up").onmouseup=()=>up=false;
+document.getElementById("down").onmousedown=()=>down=true;
+document.getElementById("down").onmouseup=()=>down=false;
+
+// pulsanti Play/Pausa/Replay
+document.getElementById("playBtn").onclick=startGame;
+document.getElementById("pauseBtn").onclick=pauseGame;
+document.getElementById("replayBtn").onclick=replayGame;
 
 ctx.fillStyle="white";
 ctx.font="20px Arial";
