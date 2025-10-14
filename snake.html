@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake</title>
+<style>
+body { font-family: Arial, sans-serif; text-align:center; background:#222; color:white; }
+canvas { display:block; margin:20px auto; background:#1a1a1a; border-radius:10px; }
+button { margin:5px; padding:10px 15px; border:none; border-radius:5px; background:#4CAF50; color:white; cursor:pointer; }
+button:hover { background:#45a049; }
+.controls { display:flex; justify-content:center; margin-top:10px; }
+.controls div { width:56px; height:56px; background:#333; border-radius:10px; display:flex; justify-content:center; align-items:center; font-size:24px; margin:4px; cursor:pointer; user-select:none; }
+.controls div:active { background:#555; }
+</style>
+</head>
+<body>
+<h1>Snake</h1>
+<canvas id="game" width="400" height="400"></canvas>
+<div>
+<button id="playBtn">Play</button>
+<button id="pauseBtn">Pausa</button>
+<button id="replayBtn">Replay</button>
+</div>
+
+<div class="controls">
+  <div id="up">⬆</div>
+  <div id="down">⬇</div>
+  <div id="left">⬅</div>
+  <div id="right">➡</div>
+</div>
+
+<p>Punteggio: <span id="score">0</span> | Record: <span id="best">0</span></p>
+
+<script>
+// === Impostazioni principali ===
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const CELL = 20;
+const ROWS = canvas.height / CELL;
+const COLS = canvas.width / CELL;
+const BASE_TICK = 180; // più lento
+const MIN_TICK = 70;
+const SPEED_THRESH = 5;
+const BONUS_SPAWN_CHANCE = 0.06;
+
+let snake, dir, nextDir, food, bonus, running, score, best, tickInterval, speedBoost, tick;
+
+// === Suoni ===
+const eatSound = new Audio('https://www.soundjay.com/button/sounds/button-16.mp3');
+const bonusSound = new Audio('https://www.soundjay.com/button/sounds/button-09.mp3');
+
+// === Funzioni utili ===
+function rnd(min,max){return Math.floor(Math.random()*(max-min))+min;}
+function rndCell(){return {x:rnd(0,COLS), y:rnd(0,ROWS)};}
+function playSound(audio){audio.currentTime=0; audio.play().catch(()=>{});}
+
+// === Setup iniziale ===
+function resetGame(){
+    snake=[{x:Math.floor(COLS/2), y:Math.floor(ROWS/2)}];
+    dir={x:0,y:0};
+    nextDir={x:1,y:0};
+    score=0;
+    speedBoost=false;
+    tickInterval=BASE_TICK;
+    spawnFood();
+    bonus=null;
+    running=false;
+    tick=0;
+    document.getElementById('score').textContent=score;
+    best = localStorage.getItem('snake_best_v1') || 0;
+    document.getElementById('best').textContent = best;
+}
+function spawnFood(){
+    let pos;
+    do {pos=rndCell();}
+    while(snake.some(s=>s.x===pos.x && s.y===pos.y));
+    food=pos;
+}
+function spawnBonus(){
+    let pos;
+    do {pos=rndCell();}
+    while(snake.some(s=>s.x===pos.x && s.y===pos.y) || (food && food.x===pos.x && food.y===pos.y));
+    bonus = {pos:pos, type:Math.random()<0.5?'star':'speed', duration:0};
+}
+
+// === Input ===
+document.addEventListener('keydown', e=>{
+    if(e.key==='ArrowUp'||e.key==='w'||e.key==='W') nextDir={x:0,y:-1};
+    else if(e.key==='ArrowDown'||e.key==='s'||e.key==='S') nextDir={x:0,y:1};
+    else if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A') nextDir={x:-1,y:0};
+    else if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') nextDir={x:1,y:0};
+});
+['up','down','left','right'].forEach(id=>{
+    document.getElementById(id).addEventListener('click', ()=>{
+        if(id==='up') nextDir={x:0,y:-1};
+        if(id==='down') nextDir={x:0,y:1};
+        if(id==='left') nextDir={x:-1,y:0};
+        if(id==='right') nextDir={x:1,y:0};
+    });
+});
+
+// === Game loop ===
+function gameTick(){
+    if(!running) return;
+    tick++;
+    if(dir.x+nextDir.x!==0 || dir.y+nextDir.y!==0) dir=nextDir;
+    let head = {x:snake[0].x + dir.x, y:snake[0].y + dir.y};
+    if(head.x<0 || head.x>=COLS || head.y<0 || head.y>=ROWS || snake.some(s=>s.x===head.x && s.y===head.y)){
+        running=false;
+        alert('Game Over! Punteggio: '+score);
+        return;
+    }
+    snake.unshift(head);
+    if(head.x===food.x && head.y===food.y){
+        score++;
+        playSound(eatSound);
+        spawnFood();
+        if(Math.random()<BONUS_SPAWN_CHANCE) spawnBonus();
+        if(score%SPEED_THRESH===0) tickInterval=Math.max(MIN_TICK,tickInterval-10);
+    } else {snake.pop();}
+    if(bonus){
+        bonus.duration++;
+        if(head.x===bonus.pos.x && head.y===bonus.pos.y){
+            if(bonus.type==='star') score+=3;
+            else if(bonus.type==='speed') speedBoost=true;
+            playSound(bonusSound);
+            bonus=null;
+        }
+        if(bonus.duration>50) bonus=null;
+    }
+    document.getElementById('score').textContent=score;
+    if(score>best){best=score;document.getElementById('best').textContent=best;localStorage.setItem('snake_best_v1',best);}
+    draw();
+    setTimeout(gameTick, speedBoost?tickInterval/2:tickInterval);
+}
+
+// === Draw serpente con gradiente e tondo ===
+function drawSnake(){
+    snake.forEach((s,i)=>{
+        let x = s.x*CELL + CELL/2;
+        let y = s.y*CELL + CELL/2;
+        ctx.beginPath();
+        ctx.arc(x, y, CELL/2-1, 0, Math.PI*2);
+        if(i===0) ctx.fillStyle='#00FF00';
+        else {
+            let grad = ctx.createRadialGradient(x,y,2,x,y,CELL/2);
+            grad.addColorStop(0,'#4CAF50');
+            grad.addColorStop(1,'#087f23');
+            ctx.fillStyle = grad;
+        }
+        ctx.fill();
+        ctx.strokeStyle='#072D0B';
+        ctx.lineWidth=2;
+        ctx.stroke();
+    });
+}
+
+// === Draw completa ===
+function draw(){
+    ctx.fillStyle='#1a1a1a';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    ctx.fillStyle='red';
+    ctx.beginPath();
+    ctx.arc(food.x*CELL+CELL/2, food.y*CELL+CELL/2, CELL/2-2, 0, Math.PI*2);
+    ctx.fill();
+
+    if(bonus){
+        ctx.fillStyle=bonus.type==='star'?'yellow':'cyan';
+        ctx.beginPath();
+        ctx.arc(bonus.pos.x*CELL+CELL/2, bonus.pos.y*CELL+CELL/2, CELL/2-2, 0, Math.PI*2);
+        ctx.fill();
+    }
+
+    drawSnake();
+}
+
+// === Pulsanti ===
+document.getElementById('playBtn').addEventListener('click',()=>{running=true;gameTick();});
+document.getElementById('pauseBtn').addEventListener('click',()=>{running=false;});
+document.getElementById('replayBtn').addEventListener('click',()=>{resetGame(); draw();});
+
+resetGame();
+draw();
+</script>
+</body>
+</html>
